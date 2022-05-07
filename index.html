@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocalisaton_et_carte</title>
+</head>
+<body onload="carte()">
+<script>
+    function carte(){
+        var mapop={
+            center:new google.maps.LatLng(46,7),
+            zoom:4
+        }
+        map=new google.maps.Map(document.getElementById("map"),mapop)
+    }
+    function geoloc(){
+        if (navigator.geolocation){
+         navigator.geolocation.watchPosition(loc)
+         navigator.geolocation.watchPosition(marker)
+        } else {
+         let txterreur="Géolocalisation non autorisée!"
+         document.getElementById("erreur").innerHTML=txterreur
+        }
+    }
+    let tabmarker=[]
+    function loc(position){
+        let lattab=position.coords.latitude
+        let lontab=position.coords.longitude
+        let lat="Latitude :"+lattab
+        let lon="Longitude :"+lontab
+        document.getElementById("latloc").innerHTML=lat
+        document.getElementById("lonloc").innerHTML=lon
+        let entrtab=lattab+" "+lontab
+        tabmarker[0]=entrtab
+    }
+    function marker(position){
+        let latuser=position.coords.latitude
+        let lonuser=position.coords.longitude
+        var markeropuser={
+            position: new google.maps.LatLng(latuser,lonuser),
+            map: map,
+            icon: "./marker-user.png",
+            title: "Votre position",
+            label: "Utilisateur"
+        }
+        var markeruser=new google.maps.Marker(markeropuser)
+    }
+    let nmbpt=0
+    function markerpoint(){
+        let latentr=document.getElementById("lat").value
+        let lonentr=document.getElementById("lon").value
+        if (!(isNaN(latentr)) && !(isNaN(lonentr)) && !(Math.abs(latentr)>85) && !(Math.abs(lonentr)>180)){
+            nmbpt=nmbpt+1
+            var markeroppt={
+                position: new google.maps.LatLng(latentr,lonentr),
+                map: map,
+                icon: "./marker-objet.png",
+                title: "repère "+nmbpt,
+                label: "Point "+nmbpt
+            }
+            let entrtab=latentr+" "+lonentr
+            tabmarker[nmbpt]=(entrtab)
+            var markerpt=new google.maps.Marker(markeroppt)
+            let txter=""
+            document.getElementById("erreur").innerHTML=txter
+        } else {
+            let txter="Ne sont pas des latitudes/longitudes!"
+            document.getElementById("erreur").innerHTML=txter
+        }
+    }
+    function mesdistance(lat1,lon1,lat2,lon2){ //fonction venant de : https://webdevdesigner.com/q/how-to-convert-latitude-or-longitude-to-meters-8698/
+        let r=6378.137
+        let dlat=lat2*Math.PI/180-lat1*Math.PI/180
+        let dlon=lon2*Math.PI/180-lon1*Math.PI/180
+        let a=Math.sin(dlat/2)*Math.sin(dlat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dlon/2)*Math.sin(dlon/2)
+        let c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))
+        let d=(r*c).toFixed(3)
+        return(d+" km.")
+    }
+    function distance(){
+        let num1=document.getElementById("num1").value
+        let num2=document.getElementById("num2").value
+        if (!(isNaN(num1)) && !(isNaN(num2)) && !(num1==num2)){
+            let latlon1=tabmarker[num1].split(" ")
+            let latlon2=tabmarker[num2].split(" ")
+            let lat1=latlon1[0]
+            let lon1=latlon1[1]
+            let lat2=latlon2[0]
+            let lon2=latlon2[1]
+            let ret=mesdistance(lat1,lon1,lat2,lon2)
+            document.getElementById("retdistance").innerHTML="La distance est de "+ret
+        } else {
+            let msgerr="Point(s) non valide(s)/n'existe(nt) pas."
+            document.getElementById("retdistance").innerHTML=msgerr
+        }
+    }
+</script>
+<div id="map" style="width:50%; height:400px; position: absolute; top: 50px; left: 300px;"></div>
+<p style="position: absolute; top: 20px; left: 10px;">Entrer latitude :</p>
+<input id="lat" style="border: 1px solid black;  width: 200px; height: 20px; position: absolute; top: 60px; left: 10px;">
+<p style="position: absolute; top: 90px; left: 10px;">Entrer longitude :</p>
+<input id="lon" style="border: 1px solid black; width: 200px; height: 20px; position: absolute; top: 130px; left: 10px;">
+<button onclick="markerpoint()" style="position: absolute; top: 180px; left: 30px;">Placer un point</button>
+<button onclick="geoloc()" style="position: absolute; top: 210px; left: 30px;">Se localiser</button>
+<div id="erreur" style="width: 250px; height: 20px; position: absolute; top: 230px; left: 20px;"></div>
+<div id="latloc" style="width: 200px; height: 20px; position: absolute; top: 250px; left: 20px;"></div>
+<div id="lonloc" style="width: 200px; height: 20px; position: absolute; top: 280px; left: 20px;"></div>
+<p style="position: absolute; top: 290px; left: 40px;">Entrer 2 points par leur numéros,<br />(la position utilisateur correspond à 0) :</p>
+<input id="num1" style="border: 1px solid black;  width: 20px; height: 20px; position: absolute; top: 350px; left: 40px;">
+<input id="num2" style="border: 1px solid black;  width: 20px; height: 20px; position: absolute; top: 350px; left: 70px;">
+<button onclick="distance()" style="position: absolute; top: 380px; left: 40px;">Calculer distance</button>
+<div id="retdistance" style="width: 250px; height: 20px; position: absolute; top: 410px; left: 40px;"></div>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbmtNmv7whCb-3rWYFnSOTIa56Eqgi8iw&callback=carte"></script>
+</body>
+</html>
